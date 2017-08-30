@@ -1,0 +1,23 @@
+#!/bin/sh
+
+getPods=$(kubectl get pods ${@:1} | fzf-tmux --exit-0 --tac --expect=ctrl-i,ctrl-s,ctrl-l,ctrl-e)
+key=$(head -1 <<< "$getPods")
+podName=$(head -2 <<< "$getPods" | tail -1 | awk '{print $1;}')
+
+if [ -n "$podName" ];  then
+    if [[ "$key" == 'ctrl-i' ]]; then
+        kubectl decribe pod $podName
+    elif [[ "$key" == 'ctrl-s' ]]; then
+        echo "Stopping $podName"
+        kubectl delete pod $podName ${@:1}
+    elif [[ "$key" == 'ctrl-l' ]]; then
+        kubectl logs -f $podName ${@:1}
+    elif [[ "$key" == 'ctrl-e' ]]; then
+        kubectl ${@:1} exec -it $podName -- /bin/sh
+    else
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            echo $podName | tr -d '\n' | pbcopy
+        fi
+        echo $podName
+    fi
+fi
