@@ -5,11 +5,12 @@ set -e # Exit with nonzero exit code if anything fails
 if git diff-tree --no-commit-id --name-only -r HEAD; then
     echo 'kps code changed, creating release'
 
+    git pull --tags
     # Save some useful information
     REPO=`git config remote.origin.url`
     SSH_REPO=${REPO/https:\/\/github.com\//git@github.com:}
-    OLD_VERSION=`git describe --abbrev=0 --tags | awk -F'[.]' '/^v/ {print $1"."$2"."$3}' | cut -c 2-`
-    NEW_VERSION=`git describe --abbrev=0 --tags | awk -F'[.]' '/^v/ {print $1"."$2"."$3+1}' | cut -c 2-`
+    OLD_VERSION=`git describe --tags $(git rev-list --tags --max-count=1) | awk -F'[.]' '/^v/ {print $1"."$2"."$3}' | cut -c 2-`
+    NEW_VERSION=`git describe --tags $(git rev-list --tags --max-count=1) | awk -F'[.]' '/^v/ {print $1"."$2"."$3+1}' | cut -c 2-`
     SHA256=`shasum -a 256 kps | cut -c -64`
 
     # Set config
@@ -17,7 +18,7 @@ if git diff-tree --no-commit-id --name-only -r HEAD; then
     git config --global user.name "Travis CI"
 
     # Create git tag
-    GIT_TAG=`git describe --abbrev=0 --tags | awk -F'[.]' '/^v/ {print $1"."$2"."$3+1}'`
+    GIT_TAG=`git describe --tags $(git rev-list --tags --max-count=1) | awk -F'[.]' '/^v/ {print $1"."$2"."$3+1}'`
     git tag $GIT_TAG -a -m "Generated tag from TravisCI build $TRAVIS_BUILD_NUMBER"
 
     # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
@@ -51,7 +52,7 @@ if git diff-tree --no-commit-id --name-only -r HEAD; then
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
       -H "Travis-API-Version: 3" \
-      -H "Authorization: token $TRAVIS_TOKEN" \
+      -H "Authorization: token $TRAVIS_API_TOKEN" \
       -d "$body" \
       https://api.travis-ci.org/repo/rcruzper%2Fhomebrew-tools/requests
 else
