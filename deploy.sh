@@ -48,11 +48,13 @@ if git diff-tree --no-commit-id --name-only -r HEAD; then
         }
     }"
 
+    echo "travis_api_token: $TRAVIS_API_TOKEN"
+
     curl -s -X POST \
       -H "Content-Type: application/json" \
       -H "Accept: application/json" \
       -H "Travis-API-Version: 3" \
-      -H "Authorization: token ${TRAVIS_API_TOKEN}" \
+      -H "Authorization: token $TRAVIS_API_TOKEN" \
       -d "$body" \
       https://api.travis-ci.org/repo/rcruzper%2Fhomebrew-tools/requests
 else
