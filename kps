@@ -6,7 +6,7 @@ podName=$(head -2 <<< "$getPods" | tail -1 | awk '{print $1;}')
 
 if [ -n "$podName" ];  then
     if [[ "$key" == 'ctrl-i' ]]; then
-        kubectl decribe pod $podName
+        kubectl describe pod $podName
     elif [[ "$key" == 'ctrl-s' ]]; then
         echo "Stopping $podName"
         kubectl delete pod $podName ${@:1}
